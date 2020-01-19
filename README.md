@@ -90,6 +90,7 @@ ipconfig
 Ici, est 172.20.10.199
 
 
+
 # Cross-compilation
 
 -Transférer fichiers concernés sur docker : 
@@ -102,6 +103,8 @@ export PATH=$PATH:/root/buildroot-precompiled-2017.08/output/host/bin/
 -Utiliser configure avec la variable host correspondante à l'image flashée sur la raspberry (vu via buildroot)
 
 ./configure --host=arm-linux
+
+Modifications dans fichiers configure.ac? A verifier
 
 - Transférer sur ordinateur 
 
