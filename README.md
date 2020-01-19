@@ -5,16 +5,23 @@
 1e lancement : 
 
 docker pull pblottiere/embsys-rpi3-buildroot-video
+
 docker run -it pblottiere/embsys-rpi3-buildroot-video /bin/bash
+
 docker# cd /root
+
 docker# ls
+
 buildroot-precompiled-2017.08.tar.gz
+
 docker# tar zxvf buildroot-precompiled-2017.08.tar.gz
 
 Relancer : 
 
 docker ps -a --> récupérer id container souhaité; ici, a333cea88350 
+
 docker container start a333cea88350
+
 docker exec -it a333cea88350 /bin/bash
 
 # Récupération des fichiers nécessaires
