@@ -1,4 +1,4 @@
-/***************************************************************************
+﻿/***************************************************************************
  *   v4l2grab Version 0.3                                                  *
  *   Copyright (C) 2012 by Tobias Müller                                   *
  *   Tobias_Mueller@twam.info                                              *
@@ -66,7 +66,7 @@
 #include <arpa/inet.h>
 #include <errno.h>
 
-//#include "./lib/comm.h"
+#include "./lib/comm.h"
  
 #include "config.h"
 #include "yuv.h"
@@ -107,6 +107,7 @@ static unsigned int     n_buffers       = 0;
 // global settings
 static unsigned int width = 640;
 static unsigned int height = 480;
+static unsigned int port = 2400;
 static unsigned int fps = 30;
 static int continuous = 0;
 static unsigned char jpegQuality = 70;
@@ -241,11 +242,11 @@ static void imageProcess(const void* p, struct timeval timestamp, unsigned char 
     //jpegWrite(dst,jpegFilename);
 
 
-    img = dst;
+     memcpy(img,dst,width*height*3*sizeof(char));
 
 
 	// free temporary image
-	free(dst);
+        //free(dst);
 }
 
 /**
@@ -384,6 +385,10 @@ static void mainLoop(int port)
 char msg[255];
     id=0;
 
+    fd_set fds;
+    struct timeval tv;
+    int r;
+
 
  socklen_t len = sizeof(struct sockaddr_in); //déclaration d' une variable du type socklen_t qui contiendra la taille de la structure
 
@@ -395,7 +400,7 @@ char msg[255];
 
     /*initialisation du protocole, TCP  l'adresse de connection 127.0.0.1 (en local) et du port du serveur (1400)*/
     memset(&information_server, 0, sizeof(struct sockaddr_in));
-    information_server.sin_port = htons(2401);
+    information_server.sin_port = htons(port);
     information_server.sin_family = AF_INET;
 
     /* création de la connexion*/
@@ -452,31 +457,59 @@ char msg[255];
                     exit (0);
                 }
 
-        if (strcmp(msg, "3") == 0)
-        {
-        // changement resolution
-        //width = msg;
-        //height = msg
+//        if (strcmp(msg, "3") == 0)
+//        {
+//        // changement resolution
+//        //width = msg;
+//        //height = msg
 
-        }
+//        }
 
-        if (strcmp(msg, "1") == 0 )
-        {
-            // send current resolution
+            if (strcmp(msg, "1") == 0 )
+            {
+                int tst = 0;
 
-            frameRead(img);
-            send(connexion, img, strlen(img), 0);
+                while (tst == 0)
+                {
+                FD_ZERO(&fds);
+                FD_SET(fd, &fds);
+
+                /* Timeout. */
+                tv.tv_sec = 1;
+                tv.tv_usec = 0;
+
+                r = select(fd + 1, &fds, NULL, NULL, &tv);
+
+                if (-1 == r) {
+                        if (EINTR == errno)
+                                continue;
+
+                        errno_exit("select");
+                }
+                if (frameRead(img))
+                {
+                    tst = 1;
+
+                }
+
+                }
+                jpegWrite(img,jpegFilename);
+
+               // printf ("Picture took ! %s \n",img);
+                send(connexion, img, strlen(img), 0);
+                printf ("client %d : %s\n",id,msg);
+                printf ("Picture send!");
+
+            }
+
+               // printf ("client %d : %s\n",id,msg);
+               // printf ("Réponse : ");
+                //fgets(msg, 255, stdin);
+                //msg[strlen(msg) - 1] = '\0';
+                //send(connexion, msg, strlen(msg), 0);
+
             free(img);
             img = malloc(width*height*3*sizeof(char));
-
-        }
-
-                printf ("client %d : %s\n",id,msg);
-                printf ("Réponse : ");
-                fgets(msg, 255, stdin);
-                msg[strlen(msg) - 1] = '\0';
-                send(connexion, msg, strlen(msg), 0);
-
             }
             while(1);
         }
@@ -977,17 +1010,17 @@ static void usage(FILE* fp, int argc, char** argv)
 		"-m | --mmap          Use memory mapped buffers\n"
 		"-r | --read          Use read() calls\n"
 		"-u | --userptr       Use application allocated buffers\n"
-		"-W | --width         Set image width\n"
-		"-H | --height        Set image height\n"
+                //"-W | --width         Set image width\n"
+                //"-H | --height        Set image height\n"
 		"-I | --interval      Set frame interval (fps) (-1 to skip)\n"
 		"-c | --continuous    Do continous capture, stop with SIGINT.\n"
 		"-v | --version       Print version\n"
-        "-p | --port       Number port\n"
+                "-P | --port          Number port\n"
 		"",
 		argv[0]);
 	}
 
-static const char short_options [] = "d:ho:q:mruW:H:I:vc";
+static const char short_options [] = "d:ho:q:mruW:H:P:I:vc";
 
 static const struct option
 long_options [] = {
@@ -998,12 +1031,12 @@ long_options [] = {
 	{ "mmap",       no_argument,            NULL,           'm' },
 	{ "read",       no_argument,            NULL,           'r' },
 	{ "userptr",    no_argument,            NULL,           'u' },
-	{ "width",      required_argument,      NULL,           'W' },
-	{ "height",     required_argument,      NULL,           'H' },
+        //{ "width",      required_argument,      NULL,           'W' },
+        //{ "height",     required_argument,      NULL,           'H' },
 	{ "interval",   required_argument,      NULL,           'I' },
 	{ "version",	no_argument,		NULL,		'v' },
-{ "continuous",	no_argument,		NULL,		'c' },
-    {"port",	required_argument,		NULL,		'p' },
+        { "continuous",	no_argument,		NULL,		'c' },
+        {"port",	required_argument,	NULL,	'P' },
 	{ 0, 0, 0, 0 }
 };
 
@@ -1012,7 +1045,7 @@ int main(int argc, char **argv)
 
     printf("Inside");
 
-    int port = 2400;
+
         for (;;) {
             int index, c = 0;
 
@@ -1021,13 +1054,15 @@ int main(int argc, char **argv)
             if (-1 == c)
                 break;
 
+
             switch (c) {
                 case 0: /* getopt_long() flag */
                     break;
 
-//                case 'p':
-//                    port = atoi(optarg);
-//                    break;
+            case 'P':
+                // set width
+                port = atoi(optarg);
+                break;
 
 
                 case 'd':
@@ -1076,15 +1111,15 @@ int main(int argc, char **argv)
     #endif
                     break;
 
-                case 'W':
+         //       case 'W':
                     // set width
-                    width = atoi(optarg);
-                    break;
+         //           width = atoi(optarg);
+         //           break;
 
-                case 'H':
-                    // set height
-                    height = atoi(optarg);
-                    break;
+//                case 'H':
+//                    // set height
+//                    height = atoi(optarg);
+//                    break;
 
                 case 'I':
                     // set fps
@@ -1136,7 +1171,7 @@ int main(int argc, char **argv)
 //printf("Capture start ok!");
 
 	// process frames
-    mainLoop(port);
+        mainLoop(port);
 
 	// stop capturing
 	captureStop();
