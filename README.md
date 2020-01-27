@@ -100,11 +100,17 @@ sudo docker v4l2grab-master/ a333cea88350:/home/
 
 export PATH=$PATH:/root/buildroot-precompiled-2017.08/output/host/bin/
 
+-Utiliser autogen.sh
+
+./autogen.sh
+
 -Utiliser configure avec la variable host correspondante à l'image flashée sur la raspberry (vu via buildroot)
 
 ./configure --host=arm-linux
 
-Modifications dans fichiers configure.ac? A verifier
+- Utiliser make
+
+make
 
 - Transférer sur ordinateur 
 
@@ -132,4 +138,8 @@ Pour le code : rajouter l'option -P pour ajouter le numéro de port :
 
 ./v4l2grab -d /dev/video0 -o try1.jpg -P 2400
 
+En ssh : ./client fonctionne juste si exécuté en root (autrement, librairies pas bien linkées).
 
+Actuellement, du côté client, à chaque prise d'image, crée une image appelée client[nombre_image].jpg, supprime l'ancien client[nombre_image_precedente].jpg. La dernière image peut être récupéré au niveau de la raspberry. 
+
+Bug actuel : la prise d'image a beaucoup de lag : lié au nombre de fps sur v4l2grab.c?
