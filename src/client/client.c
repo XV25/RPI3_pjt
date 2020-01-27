@@ -14,6 +14,7 @@ static unsigned int height = 480;
 static unsigned int fps = 30;
 static int continuous = 0;
 static unsigned char jpegQuality = 70;
+static int nb_pic = 0;
 
 //#include <SDL/SDL.h>
 //#include <SDL/SDL_image.h>
@@ -22,11 +23,44 @@ static unsigned char jpegQuality = 70;
 
 static void jpegWrite(unsigned char* img, char* jpegFilename)
 {
+	
+	char * oldjpegFilename = malloc(strlen(jpegFilename)*sizeof(char) );
+	strcpy(oldjpegFilename,jpegFilename);
+	printf("COpy ok \n");
         struct jpeg_compress_struct cinfo;
         struct jpeg_error_mgr jerr;
 
         JSAMPROW row_pointer[1];
-        FILE *outfile = fopen( jpegFilename, "wb" );
+	char * str = malloc(3*sizeof(char) );
+	sprintf(str,"%d",nb_pic);
+	//str = nb_pic + '0';
+	//strcpy(str, nb_pic + '0');
+
+	printf(str);
+	printf("\n");
+	strcat(oldjpegFilename,str);
+	strcat(oldjpegFilename,".jpg");
+	printf(oldjpegFilename);
+	printf("\n");
+	int removeFile = remove(oldjpegFilename);
+	if (removeFile != 0)
+	{
+		fprintf( stderr, "Error: cannot remove the file.\n" );
+	}
+	printf("OK suppress\n");
+	nb_pic++;
+	char * newjpegFilename = malloc(strlen(jpegFilename)*sizeof(char) );
+	strcpy(newjpegFilename,jpegFilename);
+	char * str2 = malloc(3*sizeof(char) );
+
+	sprintf(str2,"%d",nb_pic);
+	printf(str2);
+	printf("\n");
+	strcat(newjpegFilename,str2);
+	strcat(newjpegFilename,".jpg");
+	printf(newjpegFilename);
+	printf("\n");
+        FILE *outfile = fopen( newjpegFilename, "wb" );
 
         // create jpeg data
         cinfo.err = jpeg_std_error( &jerr );
@@ -53,6 +87,7 @@ static void jpegWrite(unsigned char* img, char* jpegFilename)
                 jpeg_write_scanlines(&cinfo, row_pointer, 1);
         }
 
+	printf("Picture_written at : %s",jpegFilename);
         // finish compression
         jpeg_finish_compress(&cinfo);
 
@@ -61,6 +96,7 @@ static void jpegWrite(unsigned char* img, char* jpegFilename)
 
         // close output file
         fclose(outfile);
+
 }
 
 
@@ -70,10 +106,11 @@ int main(int argc , char ** argv)
  
     pid_t pid;
     int id, portno, addServeur;
-    char msg[255];//variable qui contiendrat les messages
+   // char msg[255];//variable qui contiendrat les messages
+char * msg = malloc(255*sizeof(char) );
     int width = 640, height = 480;
 
-    char *img = malloc(width*height*3*sizeof(char));
+    unsigned char *img = malloc(width*height*3*sizeof(char));
  
     struct sockaddr_in informations;  //structure donnant les informations sur le serveur
 
@@ -127,9 +164,16 @@ int main(int argc , char ** argv)
 
         // recv(socketID, width, 255, 0);
         // recv(socketID, height, 255, 0);
-        recv(socketID, img, strlen(img), 0);
-        printf("Picture received!");
-        jpegWrite(img,"client.jpg");
+        recv(socketID, img, width*height*3*sizeof(char), 0);
+        //printf("Picture received!");
+	free(msg);
+	msg = malloc(255*sizeof(char) );
+	
+	strcpy(msg,"Picture_received\n");
+	printf(msg);
+	//printf("\n");
+	send(socketID,msg,255*sizeof(char),0);
+        jpegWrite(img,"client");
         free(img);
         img = malloc(width*height*3*sizeof(char));
         //printf("Je viens de recevoir l'image : %s \n", img);//  , img);

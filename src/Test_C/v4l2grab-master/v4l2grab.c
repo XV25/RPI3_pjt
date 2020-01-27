@@ -108,7 +108,7 @@ static unsigned int     n_buffers       = 0;
 static unsigned int width = 640;
 static unsigned int height = 480;
 static unsigned int port = 2400;
-static unsigned int fps = 30;
+static unsigned int fps = -1;
 static int continuous = 0;
 static unsigned char jpegQuality = 70;
 static char* jpegFilename = NULL;
@@ -382,7 +382,8 @@ static void mainLoop(int port)
     int connexion = 0;
     int pid;
     int id;
-char msg[255];
+char *msg = malloc(255*sizeof(char) );
+char * msg2 = malloc(255*sizeof(char) );
     id=0;
 
     fd_set fds;
@@ -496,9 +497,13 @@ char msg[255];
                 jpegWrite(img,jpegFilename);
 
                // printf ("Picture took ! %s \n",img);
-                send(connexion, img, strlen(img), 0);
+                send(connexion, img, width*height*3*sizeof(char), 0);
                 printf ("client %d : %s\n",id,msg);
-                printf ("Picture send!");
+                //printf ("Picture send!");
+		free(msg2);
+		msg2 = malloc( 255*sizeof(char) );
+		recv(connexion, msg2, 255*sizeof(char), 0);
+		printf(msg2);
 
             }
 
@@ -510,6 +515,8 @@ char msg[255];
 
             free(img);
             img = malloc(width*height*3*sizeof(char));
+		free(msg);
+		msg = malloc(255*sizeof(char) );
             }
             while(1);
         }
