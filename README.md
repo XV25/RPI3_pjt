@@ -128,3 +128,8 @@ ls /dev/video0
 
 ./v4l2grab -d /dev/video0 -o image.jpg
 
+Pour le code : rajouter l'option -P pour ajouter le numéro de port : 
+
+./v4l2grab -d /dev/video0 -o try1.jpg -P 2400
+
+
