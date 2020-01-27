@@ -140,6 +140,15 @@ Pour le code : rajouter l'option -P pour ajouter le numéro de port :
 
 En ssh : ./client fonctionne juste si exécuté en root (autrement, librairies pas bien linkées).
 
+(Ou nécessaire de faire manip suivante : 
+
+LD_LIBRARY_PATH=/usr/lib
+export LD_LIBRARY_PATH
+su 
+
+Et vérifier que exécutable est bien linké avec librairies : ldd ./client ici )
+
+
 Actuellement, du côté client, à chaque prise d'image, crée une image appelée client[nombre_image].jpg, supprime l'ancien client[nombre_image_precedente].jpg. La dernière image peut être récupéré au niveau de la raspberry. 
 
 Bug actuel : la prise d'image a beaucoup de lag : lié au nombre de fps sur v4l2grab.c?
