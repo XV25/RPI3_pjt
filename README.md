@@ -154,3 +154,7 @@ Actuellement, du côté client, à chaque prise d'image, crée une image appelé
 Bug actuel : la prise d'image a beaucoup de lag : lié au nombre de fps sur v4l2grab.c?
 ATTENTION : LE MODE CONTINUOUS NE FONCTIONNE PAS SUR v4l2grab.c ACTUELLEMENT!!! CONDUIT A LA CREATION D'IMAGES IMPOSSIBLES A EFFACER!
 Pas réussi à faire fonctionner la carte sd en réseau (pas de linkage des librairies sur la carte sd). A voir pourquoi.
+
+Pin pour LED : une sur GPIO17, l'autre sur GPIO18
+GPIO17 : Indique que serveur fonctionne.
+GPIO18: Indique que photo prise ou non.
