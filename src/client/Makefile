@@ -1,4 +1,4 @@
-GCC = /root/buildroot-precompiled-2017.08/output/host/usr/bin/arm-linux-gcc
+GCC = gcc#/root/buildroot-precompiled-2017.08/output/host/usr/bin/arm-linux-gcc
 COPTS = -Wall
 CLIENT = client
 BIN = client

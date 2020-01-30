@@ -1,10 +1,10 @@
 #include <string.h>
 
 #define SUCCESS '0'
-#define ERROR '1'
+#define ERROR "2"
 #define TAILLE_IMAGE '5'
 
-#define CMD_PRENDRE_PHOTO '2'
+#define CMD_PRENDRE_PHOTO "1"
 #define CMD_DEFINIR_RESOLUTION '3'
 #define INFO '4'
 
