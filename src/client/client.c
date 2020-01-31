@@ -1,3 +1,4 @@
+// Déclaration des bibliothèques utilisées
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <stdio.h>
@@ -9,11 +10,6 @@
 
 #include <jpeglib.h>
 
-#include <SDL/SDL.h>
-#include <SDL/SDL_image.h>
-#include <SDL/SDL_ttf.h>
-#include <SDL/SDL_getenv.h>
-
 #define CLEAR(x) memset (&(x), 0, sizeof (x))
 
 static unsigned int width = 640;
@@ -23,6 +19,11 @@ static int continuous = 0;
 static unsigned char jpegQuality = 70;
 static int nb_pic = 0;
 
+
+ #include <SDL/SDL.h>
+ #include <SDL/SDL_image.h>
+ #include <SDL/SDL_ttf.h>
+ #include <SDL/SDL_getenv.h>
 
 
 
@@ -106,6 +107,7 @@ static void AvailableCommands()
 
         }
 
+///// Main du fichier 
 
 int main(int argc , char ** argv)
 {
@@ -132,7 +134,7 @@ char * msg = malloc(255*sizeof(char) );
     /*initialisation du protocole, TCP  l'adresse de connection 127.0.0.1 (en local) et du port du serveur (1400)*/
     informations.sin_family = AF_INET;
     informations.sin_port = htons(portno);
-    informations.sin_addr.s_addr = INADDR_ANY;
+    informations.sin_addr.s_addr = inet_addr(argv[1]);
  
     int socketID = socket(AF_INET, SOCK_STREAM, 0); // creation du socket propre au client
  
@@ -155,6 +157,10 @@ char * msg = malloc(255*sizeof(char) );
         printf ("%s\n", msg);
     }
  
+///// Affichage du menu de communication de l'application 
+    
+    AvailableCommands();
+
     do
     {
         id+=1;
@@ -178,7 +184,6 @@ char * msg = malloc(255*sizeof(char) );
 
 	send(socketID,msg,255*sizeof(char),0);
         jpegWrite(img,"client");
-        afficherImage(img);
         free(img);
         img = malloc(width*height*3*sizeof(char));
         }
@@ -210,7 +215,6 @@ char * msg = malloc(255*sizeof(char) );
     return 0;
  
 }
-
 
 
 //// Fonction affichage image avec SDL 2
