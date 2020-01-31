@@ -9,6 +9,11 @@
 
 #include <jpeglib.h>
 
+#include <SDL/SDL.h>
+#include <SDL/SDL_image.h>
+#include <SDL/SDL_ttf.h>
+#include <SDL/SDL_getenv.h>
+
 #define CLEAR(x) memset (&(x), 0, sizeof (x))
 
 static unsigned int width = 640;
@@ -18,11 +23,6 @@ static int continuous = 0;
 static unsigned char jpegQuality = 70;
 static int nb_pic = 0;
 
-
-//#include <SDL/SDL.h>
-//#include <SDL/SDL_image.h>
-//#include <SDL/SDL_ttf.h>
-//#include <SDL/SDL_getenv.h>
 
 
 
@@ -38,33 +38,26 @@ static void jpegWrite(unsigned char* img, char* jpegFilename)
         JSAMPROW row_pointer[1];
 	char * str = malloc(3*sizeof(char) );
 	sprintf(str,"%d",nb_pic);
-	//str = nb_pic + '0';
-	//strcpy(str, nb_pic + '0');
 
-//	printf(str);
-//	printf("\n");
         strcat(oldjpegFilename,str);
         strcat(oldjpegFilename,".jpg");
-//	printf(oldjpegFilename);
-//	printf("\n");
+
 	int removeFile = remove(oldjpegFilename);
 	if (removeFile != 0)
 	{
 		fprintf( stderr, "Error: cannot remove the file.\n" );
 	}
-//	printf("OK suppress\n");
+
 	nb_pic++;
 	char * newjpegFilename = malloc(strlen(jpegFilename)*sizeof(char) );
 	strcpy(newjpegFilename,jpegFilename);
 	char * str2 = malloc(3*sizeof(char) );
 
 	sprintf(str2,"%d",nb_pic);
-//	printf(str2);
-//	printf("\n");
+
 	strcat(newjpegFilename,str2);
 	strcat(newjpegFilename,".jpg");
-//	printf(newjpegFilename);
-//	printf("\n");
+
         FILE *outfile = fopen( newjpegFilename, "wb" );
 
         // create jpeg data
@@ -185,6 +178,7 @@ char * msg = malloc(255*sizeof(char) );
 
 	send(socketID,msg,255*sizeof(char),0);
         jpegWrite(img,"client");
+        afficherImage(img);
         free(img);
         img = malloc(width*height*3*sizeof(char));
         }
@@ -219,50 +213,78 @@ char * msg = malloc(255*sizeof(char) );
 
 
 
-// Fonction affichage image avec SDL 2
-//void afficherImage(){
+//// Fonction affichage image avec SDL 2
+void afficherImage(char * data){
+    int req_format = STBI_rgb_alpha;
 
-//SDL_Surface *ecran = NULL, *fond = NULL;
-//SDL_Rect positionFond;
+    Uint32 rmask, gmask, bmask, amask;
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+  int shift = (req_format == STBI_rgb) ? 8 : 0;
+  rmask = 0xff000000 >> shift;
+  gmask = 0x00ff0000 >> shift;
+  bmask = 0x0000ff00 >> shift;
+  amask = 0x000000ff >> shift;
+#else // little endian, like x86
+  rmask = 0x000000ff;
+  gmask = 0x0000ff00;
+  bmask = 0x00ff0000;
+  amask = (req_format == STBI_rgb) ? 0 : 0xff000000;
+#endif
+
+int depth, pitch;
+if (req_format == STBI_rgb) {
+  depth = 24;
+  pitch = 3*width; // 3 bytes per pixel * pixels per row
+} else { // STBI_rgb_alpha (RGBA)
+  depth = 32;
+  pitch = 4*width;
+}
+
+
+SDL_Surface *ecran = NULL;
+SDL_Surface *fond = SDL_CreateRGBSurfaceFrom((void*)data, width, height, depth, pitch,
+                                             rmask, gmask, bmask, amask);
+
+SDL_Rect positionFond;
  
-//    SDL_Event event;
+    SDL_Event event;
  
-//    int continuer = 1;
+    int continuer = 1;
  
-//    putenv("SDL_VIDEO_CENTERED=1");
-//    SDL_Init(SDL_INIT_VIDEO);
+    putenv("SDL_VIDEO_CENTERED=1");
+    SDL_Init(SDL_INIT_VIDEO);
  
-//    ecran = SDL_SetVideoMode(800, 640, 32, SDL_HWSURFACE | SDL_DOUBLEBUF);
-//    SDL_WM_SetCaption("SDLapp", NULL);
+    ecran = SDL_SetVideoMode(800, 640, 32, SDL_HWSURFACE | SDL_DOUBLEBUF);
+    SDL_WM_SetCaption("SDLapp", NULL);
  
 //fond = IMG_Load("index.jpeg");
  
-//    positionFond.x = 0;
-//    positionFond.y = 0;
+    positionFond.x = 0;
+    positionFond.y = 0;
  
-//     while (continuer)
-//    {
+     while (continuer)
+    {
  
-//        SDL_PollEvent(&event);
-//        switch (event.type)
-//        {
-//        case SDL_QUIT:
-//            continuer = 0;
-//            break;
-//        }
+        SDL_PollEvent(&event);
+        switch (event.type)
+        {
+        case SDL_QUIT:
+            continuer = 0;
+            break;
+        }
  
-//        SDL_FillRect(ecran, NULL, SDL_MapRGB(ecran->format, 0, 0, 0));
+        SDL_FillRect(ecran, NULL, SDL_MapRGB(ecran->format, 0, 0, 0));
  
-//SDL_BlitSurface(fond, NULL, ecran, &positionFond);
+SDL_BlitSurface(fond, NULL, ecran, &positionFond);
  
-//        SDL_Flip(ecran);
-//    }
+        SDL_Flip(ecran);
+    }
  
-//SDL_FreeSurface(fond);
+SDL_FreeSurface(fond);
  
  
-//    SDL_Quit();
+    SDL_Quit();
  
-//    return EXIT_SUCCESS;
+    return EXIT_SUCCESS;
 
-//}
+}
