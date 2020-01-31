@@ -1,9 +1,8 @@
-/* blink.c
+/* lblink.c
  *
  * Raspberry Pi GPIO example using sysfs interface.
  * Guillermo A. Amaral B. <g@maral.me>
  *
- * This file blinks GPIO 4 (P1-07) while reading GPIO 24 (P1_18).
  */
 
 #include <sys/stat.h>
@@ -23,6 +22,7 @@
 #define POUT1 17  /* P1-07 */
 #define POUT2 18
 
+/* Export GPIO pin */
 int GPIOExport(int pin)
 {
 #define BUFFER_MAX 3
@@ -41,6 +41,7 @@ int GPIOExport(int pin)
 	close(fd);
 	return(0);
 }
+/* Disconnect GPIO pin */
 int GPIOUnexport(int pin)
 {
 	char buffer[BUFFER_MAX];
@@ -59,6 +60,7 @@ int GPIOUnexport(int pin)
 	return(0);
 }
 
+/* Set direction of GPIO pin */
 int GPIODirection(int pin, int dir)
 {
 	static const char s_directions_str[]  = "in\0out";
@@ -83,6 +85,7 @@ int GPIODirection(int pin, int dir)
 	return(0);
 }
 
+/* Read value of pin */
 int GPIORead(int pin)
 {
 #define VALUE_MAX 30
@@ -106,7 +109,7 @@ int GPIORead(int pin)
 
 	return(atoi(value_str));
 }
-
+/* Set value of pin */
 int GPIOWrite(int pin, int value)
 {
 	static const char s_values_str[] = "01";
