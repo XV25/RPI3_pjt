@@ -12,53 +12,59 @@
 
 #define CLEAR(x) memset (&(x), 0, sizeof (x))
 
+//  largeur par défaut de la photo
 static unsigned int width = 640;
+//  longueur par défaut de la photo
 static unsigned int height = 480;
+//  taux de rafraichissement de la capture d'image
 static unsigned int fps = 30;
+//  Activation/desactivation de la prise d'image en continu
 static int continuous = 0;
+//  Qualité de l'image
 static unsigned char jpegQuality = 70;
+//  compteur du nombre d'image capturés
 static int nb_pic = 0;
 
-
- #include <SDL/SDL.h>
- #include <SDL/SDL_image.h>
- #include <SDL/SDL_ttf.h>
- #include <SDL/SDL_getenv.h>
-
-
-
+/**
+ * Ecrit une image dans un fichier jpeg
+ * @param img : l'image sous forme de chaines de caractères
+ * @param jpegFilename : le nom du futur fichier image
+ * @return void
+ */
 static void jpegWrite(unsigned char* img, char* jpegFilename)
 {
-	
-	char * oldjpegFilename = malloc(strlen(jpegFilename)*sizeof(char) );
-	strcpy(oldjpegFilename,jpegFilename);
+        //  traitement du nom du fichier image
+        char * oldjpegFilename = malloc(strlen(jpegFilename)*sizeof(char) );
+        strcpy(oldjpegFilename,jpegFilename);
 
         struct jpeg_compress_struct cinfo;
         struct jpeg_error_mgr jerr;
 
         JSAMPROW row_pointer[1];
-	char * str = malloc(3*sizeof(char) );
-	sprintf(str,"%d",nb_pic);
+        char * str = malloc(3*sizeof(char) );
+        sprintf(str,"%d",nb_pic);
 
         strcat(oldjpegFilename,str);
         strcat(oldjpegFilename,".jpg");
 
-	int removeFile = remove(oldjpegFilename);
-	if (removeFile != 0)
-	{
-		fprintf( stderr, "Error: cannot remove the file.\n" );
-	}
+    //  on veut écraser si une image du même nom existe déjà
+        int removeFile = remove(oldjpegFilename);
+        if (removeFile != 0)
+        {
+                fprintf( stderr, "Error: cannot remove the file.\n" );
+        }
 
-	nb_pic++;
-	char * newjpegFilename = malloc(strlen(jpegFilename)*sizeof(char) );
-	strcpy(newjpegFilename,jpegFilename);
-	char * str2 = malloc(3*sizeof(char) );
+        nb_pic++;
+        char * newjpegFilename = malloc(strlen(jpegFilename)*sizeof(char) );
+        strcpy(newjpegFilename,jpegFilename);
+        char * str2 = malloc(3*sizeof(char) );
 
-	sprintf(str2,"%d",nb_pic);
+        sprintf(str2,"%d",nb_pic);
 
-	strcat(newjpegFilename,str2);
-	strcat(newjpegFilename,".jpg");
+        strcat(newjpegFilename,str2);
+        strcat(newjpegFilename,".jpg");
 
+    //  Création et ouvertur du fichier image
         FILE *outfile = fopen( newjpegFilename, "wb" );
 
         // create jpeg data
@@ -66,38 +72,42 @@ static void jpegWrite(unsigned char* img, char* jpegFilename)
         jpeg_create_compress(&cinfo);
         jpeg_stdio_dest(&cinfo, outfile);
 
-        // set image parameters
+        // définition des parametres de l'image
         cinfo.image_width = width;
         cinfo.image_height = height;
         cinfo.input_components = 3;
         cinfo.in_color_space = JCS_YCbCr;
 
-        // set jpeg compression parameters to default
+        // parametres de compression jpeg par défaut
         jpeg_set_defaults(&cinfo);
-        // and then adjust quality setting
+        // ajustement de la qualité de l'image
         jpeg_set_quality(&cinfo, jpegQuality, TRUE);
 
-        // start compress
+        // début de la compréssion de l'image
         jpeg_start_compress(&cinfo, TRUE);
 
-        // feed data
+        // lecture des flux
         while (cinfo.next_scanline < cinfo.image_height) {
                 row_pointer[0] = &img[cinfo.next_scanline * cinfo.image_width *  cinfo.input_components];
                 jpeg_write_scanlines(&cinfo, row_pointer, 1);
         }
 
         printf("Picture_written at : %s",newjpegFilename);
-        // finish compression
+        // fin de la compression
         jpeg_finish_compress(&cinfo);
 
-        // destroy jpeg data
+        // destruction du jpeg
         jpeg_destroy_compress(&cinfo);
 
-        // close output file
+        // fermeture du fichier jpeg
         fclose(outfile);
 
 }
 
+/**
+ * Affiche les commandes possibles a l'utilisateur
+ * @return void
+ */
 static void AvailableCommands()
 {
         printf("---------- AvailableCommands -----------\n");
@@ -107,11 +117,11 @@ static void AvailableCommands()
 
         }
 
-///// Main du fichier 
+///// Main du fichier (Point d'entrée d'exécution)
 
 int main(int argc , char ** argv)
 {
- 
+
     pid_t pid;
     int id, portno, addServeur;
    // char msg[255];//variable qui contiendrat les messages
@@ -119,10 +129,10 @@ char * msg = malloc(255*sizeof(char) );
     int width = 640, height = 480;
 
     unsigned char *img = malloc(width*height*3*sizeof(char));
- 
+
     struct sockaddr_in informations;  //structure donnant les informations sur le serveur
 
-    // Test du nombre d'arguments 
+    // Test du nombre d'arguments
     if (argc < 3)
     {
         fprintf(stderr,"Spécifiez les arguments SVP %s nom_hôte No_Port\n", argv[0]);
@@ -135,30 +145,30 @@ char * msg = malloc(255*sizeof(char) );
     informations.sin_family = AF_INET;
     informations.sin_port = htons(portno);
     informations.sin_addr.s_addr = inet_addr(argv[1]);
- 
+
     int socketID = socket(AF_INET, SOCK_STREAM, 0); // creation du socket propre au client
- 
+
     if (socketID == -1)    //test de création du socket
     {
         perror("socket");
         exit (-1);
     }
- 
+
     if ((connect(socketID, (struct sockaddr *) &informations, sizeof(struct sockaddr_in))) == -1)   //connexion au serveur
     {
         perror("connect");
         exit (-1);
     }
- 
+
     if (strcmp(msg, "bye") != 0)
     {
         memset(msg, 0, 255);
         recv(socketID, msg, 255, 0);
         printf ("%s\n", msg);
     }
- 
-///// Affichage du menu de communication de l'application 
-    
+
+///// Affichage du menu de communication de l'application
+
     AvailableCommands();
 
     do
@@ -167,7 +177,7 @@ char * msg = malloc(255*sizeof(char) );
         printf ("\n moi : ");
         fgets(msg, 255, stdin);// le client ecrit son message
         msg[strlen(msg) - 1] = '\0';
- 
+
         if (strcmp(msg,"1") == 0)
         {
 
@@ -176,13 +186,13 @@ char * msg = malloc(255*sizeof(char) );
 
         recv(socketID, img, width*height*3*sizeof(char), 0);
 
-	free(msg);
-	msg = malloc(255*sizeof(char) );
-	
-	strcpy(msg,"Picture_received\n");
-	printf(msg);
+        free(msg);
+        msg = malloc(255*sizeof(char) );
 
-	send(socketID,msg,255*sizeof(char),0);
+        strcpy(msg,"Picture_received\n");
+        printf(msg);
+
+        send(socketID,msg,255*sizeof(char),0);
         jpegWrite(img,"client");
         free(img);
         img = malloc(width*height*3*sizeof(char));
@@ -211,84 +221,7 @@ char * msg = malloc(255*sizeof(char) );
 
 
     shutdown(socketID, SHUT_RDWR);// fermeture du socket
- 
+
     return 0;
- 
-}
-
-
-//// Fonction affichage image avec SDL 2
-void afficherImage(char * data){
-    int req_format = STBI_rgb_alpha;
-
-    Uint32 rmask, gmask, bmask, amask;
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
-  int shift = (req_format == STBI_rgb) ? 8 : 0;
-  rmask = 0xff000000 >> shift;
-  gmask = 0x00ff0000 >> shift;
-  bmask = 0x0000ff00 >> shift;
-  amask = 0x000000ff >> shift;
-#else // little endian, like x86
-  rmask = 0x000000ff;
-  gmask = 0x0000ff00;
-  bmask = 0x00ff0000;
-  amask = (req_format == STBI_rgb) ? 0 : 0xff000000;
-#endif
-
-int depth, pitch;
-if (req_format == STBI_rgb) {
-  depth = 24;
-  pitch = 3*width; // 3 bytes per pixel * pixels per row
-} else { // STBI_rgb_alpha (RGBA)
-  depth = 32;
-  pitch = 4*width;
-}
-
-
-SDL_Surface *ecran = NULL;
-SDL_Surface *fond = SDL_CreateRGBSurfaceFrom((void*)data, width, height, depth, pitch,
-                                             rmask, gmask, bmask, amask);
-
-SDL_Rect positionFond;
- 
-    SDL_Event event;
- 
-    int continuer = 1;
- 
-    putenv("SDL_VIDEO_CENTERED=1");
-    SDL_Init(SDL_INIT_VIDEO);
- 
-    ecran = SDL_SetVideoMode(800, 640, 32, SDL_HWSURFACE | SDL_DOUBLEBUF);
-    SDL_WM_SetCaption("SDLapp", NULL);
- 
-//fond = IMG_Load("index.jpeg");
- 
-    positionFond.x = 0;
-    positionFond.y = 0;
- 
-     while (continuer)
-    {
- 
-        SDL_PollEvent(&event);
-        switch (event.type)
-        {
-        case SDL_QUIT:
-            continuer = 0;
-            break;
-        }
- 
-        SDL_FillRect(ecran, NULL, SDL_MapRGB(ecran->format, 0, 0, 0));
- 
-SDL_BlitSurface(fond, NULL, ecran, &positionFond);
- 
-        SDL_Flip(ecran);
-    }
- 
-SDL_FreeSurface(fond);
- 
- 
-    SDL_Quit();
- 
-    return EXIT_SUCCESS;
 
 }
