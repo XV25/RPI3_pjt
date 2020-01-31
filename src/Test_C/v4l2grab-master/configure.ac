@@ -2,9 +2,10 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_INIT([v4l2grab], [m4_esyscmd_s([git describe --always --tag --dirty 2>/dev/null])], [Tobias_Mueller@twam.info])
+AC_CONFIG_SRCDIR([./lib/lblink.c],[./lib/comm.c])
 
 # prepare for automake
-AM_INIT_AUTOMAKE
+AM_INIT_AUTOMAKE([subdir-objects])
 
 AC_CONFIG_SRCDIR([yuv.h])
 AC_CONFIG_HEADERS([config.h])

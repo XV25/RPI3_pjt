@@ -122,14 +122,19 @@ static const char* const continuousFilenameFmt = "%s_%010"PRIu32"_%" PRId64".jpg
 /**
 SIGINT interput handler
 */
-void StopContCapture(int sig_id) {
-	printf("stoping continuous capture\n");
-	continuous = 0;
-}
+// stop continuous
+//void StopContCapture(int sig_id) {
+//	printf("stoping continuous capture\n");
+//	continuous = 0;
+//}
 
 void StopCapture(int sig_id) {
         printf("quitting server\n");
         running = 0;
+        if (-1 == GPIOUnexport(POUT1) || -1 == GPIOUnexport(POUT2))
+        {
+                printf("Error");
+                }
 }
 
 void InstallSIGINTHandler() {
@@ -140,8 +145,8 @@ void InstallSIGINTHandler() {
         sa.sa_handler = StopCapture;
 	if(sigaction(SIGINT, &sa, 0) != 0)
 	{
-		fprintf(stderr,"could not install SIGINT handler, continuous capture disabled");
-		continuous = 0;
+                fprintf(stderr,"could not install SIGINT handler, no running\n");
+                running = 0;
 	}
 }
 
@@ -238,14 +243,14 @@ static void imageProcess(const void* p, struct timeval timestamp, unsigned char 
 	unsigned char* dst = malloc(width*height*3*sizeof(char));
 
 	YUV420toYUV444(width, height, src, dst);
+// just save pic with different name
+//	if(continuous==1) {
+//		static uint32_t img_ind = 0;
+//		int64_t timestamp_long;
+//		timestamp_long = timestamp.tv_sec*1e6 + timestamp.tv_usec;
+//		sprintf(jpegFilename,continuousFilenameFmt,jpegFilenamePart,img_ind++,timestamp_long);
 
-	if(continuous==1) {
-		static uint32_t img_ind = 0;
-		int64_t timestamp_long;
-		timestamp_long = timestamp.tv_sec*1e6 + timestamp.tv_usec;
-		sprintf(jpegFilename,continuousFilenameFmt,jpegFilenamePart,img_ind++,timestamp_long);
-
-	}
+//	}
 	// write jpeg
     //jpegWrite(dst,jpegFilename);
 
@@ -391,17 +396,15 @@ static void mainLoop(int port)
     int pid;
     int id;
 
-char *msg = malloc(255*sizeof(char) );
-char * msg2 = malloc(255*sizeof(char) );
+    char * msg = malloc(255*sizeof(char) );
+    char * msg2 = malloc(255*sizeof(char) );
     id=0;
 
     fd_set fds;
     struct timeval tv;
     int r;
 
-
-
- socklen_t len = sizeof(struct sockaddr_in); //déclaration d' une variable du type socklen_t qui contiendra la taille de la structure
+    socklen_t len = sizeof(struct sockaddr_in); //déclaration d' une variable du type socklen_t qui contiendra la taille de la structure
 
     if (socketID == -1)
     {
@@ -476,22 +479,14 @@ char * msg2 = malloc(255*sizeof(char) );
                 memset(msg, 0, 255);
                 recv(connexion, msg, 255, 0);
 
-                if (strcmp(msg, "aurevoir") == 0)    //si le client ecrit aurevoir il est deconnecté du chat
+                if (strcmp(msg, "bye") == 0)    //si le client ecrit aurevoir il est deconnecté du chat
                 {
                     printf ("Connexion fermée pour le client %i\n",id);
                     shutdown(socketID, SHUT_RDWR);
                     exit (0);
                 }
 
-//        if (strcmp(msg, "3") == 0)
-//        {
-//        // changement resolution
-//        //width = msg;
-//        //height = msg
-
-//        }
-
-            if (strcmp(msg, CMD_PRENDRE_PHOTO) == 0 )
+            if (strcmp(msg, "1") == 0 )
             {
                 int tst = 0;
                 if (-1 == GPIOWrite(POUT2, 1))
@@ -520,7 +515,10 @@ char * msg2 = malloc(255*sizeof(char) );
                 }
 
                 }
+                if (jpegFilename)
+                {
                 jpegWrite(img,jpegFilename);
+                }
 
                // printf ("Picture took ! %s \n",img);
                 send(connexion, img, width*height*3*sizeof(char), 0);
@@ -536,11 +534,6 @@ char * msg2 = malloc(255*sizeof(char) );
 
             }
 
-               // printf ("client %d : %s\n",id,msg);
-               // printf ("Réponse : ");
-                //fgets(msg, 255, stdin);
-                //msg[strlen(msg) - 1] = '\0';
-                //send(connexion, msg, strlen(msg), 0);
 
             free(img);
             img = malloc(width*height*3*sizeof(char));
@@ -551,11 +544,11 @@ char * msg2 = malloc(255*sizeof(char) );
         }
         else
         {
-
-            if (-1 == GPIOUnexport(POUT1) || -1 == GPIOUnexport(POUT2))
-    {
-                    printf("Error");
-                    }
+            InstallSIGINTHandler();
+//            if (-1 == GPIOUnexport(POUT1) || -1 == GPIOUnexport(POUT2))
+//            {
+//                    printf("Error");
+//                    }
 
             close(connexion);
             connexion = -1;
@@ -565,54 +558,11 @@ char * msg2 = malloc(255*sizeof(char) );
     }
 
 
-    if (-1 == GPIOUnexport(POUT1) || -1 == GPIOUnexport(POUT2))
-{
-            printf("Error");
-            }
+//    if (-1 == GPIOUnexport(POUT1) || -1 == GPIOUnexport(POUT2))
+//    {
+//            printf("Error");
+//            }
 
-
-
-//	while (count-- > 0) {
-//		for (;;) {
-//			fd_set fds;
-//			struct timeval tv;
-//			int r;
-
-//			FD_ZERO(&fds);
-//			FD_SET(fd, &fds);
-
-//			/* Timeout. */
-//			tv.tv_sec = 1;
-//			tv.tv_usec = 0;
-
-//			r = select(fd + 1, &fds, NULL, NULL, &tv);
-
-//			if (-1 == r) {
-//				if (EINTR == errno)
-//					continue;
-
-//				errno_exit("select");
-//			}
-
-//			if (0 == r) {
-//				if (numberOfTimeouts <= 0) {
-//					count++;
-//				} else {
-//					fprintf(stderr, "select timeout\n");
-//					exit(EXIT_FAILURE);
-//				}
-//			}
-//			if(continuous == 1) {
-//				count = 3;
-//			}
-
-//			if (frameRead(img))
-
-//				break;
-
-//			/* EAGAIN - continue select loop. */
-//		}
-//	}
 
 }
 
@@ -1060,7 +1010,7 @@ static void usage(FILE* fp, int argc, char** argv)
 		"Options:\n"
 		"-d | --device name   Video device name [/dev/video0]\n"
 		"-h | --help          Print this message\n"
-		"-o | --output        Set JPEG output filename\n"
+                "-o | --output        Set JPEG output filename in server side\n"
 		"-q | --quality       Set JPEG quality (0-100)\n"
 		"-m | --mmap          Use memory mapped buffers\n"
 		"-r | --read          Use read() calls\n"
@@ -1068,14 +1018,14 @@ static void usage(FILE* fp, int argc, char** argv)
                 //"-W | --width         Set image width\n"
                 //"-H | --height        Set image height\n"
 		"-I | --interval      Set frame interval (fps) (-1 to skip)\n"
-		"-c | --continuous    Do continous capture, stop with SIGINT.\n"
+                //"-c | --continuous    Do continous capture, stop with SIGINT.\n"
 		"-v | --version       Print version\n"
                 "-P | --port          Number port\n"
 		"",
 		argv[0]);
 	}
 
-static const char short_options [] = "d:ho:q:mruW:H:P:I:vc";
+static const char short_options [] = "d:ho:q:mruW:H:P:I:v";
 
 static const struct option
 long_options [] = {
@@ -1090,15 +1040,30 @@ long_options [] = {
         //{ "height",     required_argument,      NULL,           'H' },
 	{ "interval",   required_argument,      NULL,           'I' },
 	{ "version",	no_argument,		NULL,		'v' },
-        { "continuous",	no_argument,		NULL,		'c' },
         {"port",	required_argument,	NULL,	'P' },
 	{ 0, 0, 0, 0 }
 };
 
+static void OptionsChosen()
+{
+        printf("---------- Options chosen -----------\n");
+        printf("FPS : %d \n",fps);
+        printf("Width : %d \n",width);
+        printf("Height : %d \n",height);
+        printf("Port : %d \n",port);
+        if (!jpegFilename) {
+             printf("No output for picture (server side) \n");
+        }
+        else {
+           printf("Output of picture (server side) : %s \n",jpegFilename);
+        }
+        printf("JpegQuality : %d \n",jpegQuality);
+        printf("Device name: %s \n",deviceName);
+
+        }
+
 int main(int argc, char **argv)
 {
-
-    printf("Inside");
 
 
         for (;;) {
@@ -1166,27 +1131,10 @@ int main(int argc, char **argv)
     #endif
                     break;
 
-         //       case 'W':
-                    // set width
-         //           width = atoi(optarg);
-         //           break;
-
-//                case 'H':
-//                    // set height
-//                    height = atoi(optarg);
-//                    break;
-
                 case 'I':
                     // set fps
                     fps = atoi(optarg);
                     break;
-
-                case 'c':
-                    // set flag for continuous capture, interuptible by sigint
-                    continuous = 1;
-                    InstallSIGINTHandler();
-                    break;
-
 
                 case 'v':
                     printf("Version: %s\n", VERSION);
@@ -1199,33 +1147,16 @@ int main(int argc, char **argv)
             }
         }
 
+        OptionsChosen();
 
-	// check for need parameters
-	/*if (!jpegFilename) {
-		fprintf(stderr, "You have to specify JPEG output filename!\n\n");
-		usage(stdout, argc, argv);
-		exit(EXIT_FAILURE);
-	}*/
-
-
-	
-//	if(continuous == 1) {
-//		int max_name_len = snprintf(NULL,0,continuousFilenameFmt,jpegFilename,UINT32_MAX,INT64_MAX);
-//		jpegFilenamePart = jpegFilename;
-//		jpegFilename = calloc(max_name_len+1,sizeof(char));
-//		strcpy(jpegFilename,jpegFilenamePart);
-//	}
-//fprintf(stdout,"Case ok!");
         // open and initialize device
         deviceOpen();
         deviceInit();
 
-      //  printf("OPenINnit ok!");
 
         // start capturing
         captureStart();
 
-//printf("Capture start ok!");
 
 	// process frames
         mainLoop(port);

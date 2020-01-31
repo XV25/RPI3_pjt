@@ -9,6 +9,8 @@
 
 #include <jpeglib.h>
 
+#define CLEAR(x) memset (&(x), 0, sizeof (x))
+
 static unsigned int width = 640;
 static unsigned int height = 480;
 static unsigned int fps = 30;
@@ -16,17 +18,20 @@ static int continuous = 0;
 static unsigned char jpegQuality = 70;
 static int nb_pic = 0;
 
+
 //#include <SDL/SDL.h>
 //#include <SDL/SDL_image.h>
 //#include <SDL/SDL_ttf.h>
 //#include <SDL/SDL_getenv.h>
+
+
 
 static void jpegWrite(unsigned char* img, char* jpegFilename)
 {
 	
 	char * oldjpegFilename = malloc(strlen(jpegFilename)*sizeof(char) );
 	strcpy(oldjpegFilename,jpegFilename);
-	printf("COpy ok \n");
+
         struct jpeg_compress_struct cinfo;
         struct jpeg_error_mgr jerr;
 
@@ -36,30 +41,30 @@ static void jpegWrite(unsigned char* img, char* jpegFilename)
 	//str = nb_pic + '0';
 	//strcpy(str, nb_pic + '0');
 
-	printf(str);
-	printf("\n");
-	strcat(oldjpegFilename,str);
-	strcat(oldjpegFilename,".jpg");
-	printf(oldjpegFilename);
-	printf("\n");
+//	printf(str);
+//	printf("\n");
+        strcat(oldjpegFilename,str);
+        strcat(oldjpegFilename,".jpg");
+//	printf(oldjpegFilename);
+//	printf("\n");
 	int removeFile = remove(oldjpegFilename);
 	if (removeFile != 0)
 	{
 		fprintf( stderr, "Error: cannot remove the file.\n" );
 	}
-	printf("OK suppress\n");
+//	printf("OK suppress\n");
 	nb_pic++;
 	char * newjpegFilename = malloc(strlen(jpegFilename)*sizeof(char) );
 	strcpy(newjpegFilename,jpegFilename);
 	char * str2 = malloc(3*sizeof(char) );
 
 	sprintf(str2,"%d",nb_pic);
-	printf(str2);
-	printf("\n");
+//	printf(str2);
+//	printf("\n");
 	strcat(newjpegFilename,str2);
 	strcat(newjpegFilename,".jpg");
-	printf(newjpegFilename);
-	printf("\n");
+//	printf(newjpegFilename);
+//	printf("\n");
         FILE *outfile = fopen( newjpegFilename, "wb" );
 
         // create jpeg data
@@ -87,7 +92,7 @@ static void jpegWrite(unsigned char* img, char* jpegFilename)
                 jpeg_write_scanlines(&cinfo, row_pointer, 1);
         }
 
-	printf("Picture_written at : %s",jpegFilename);
+        printf("Picture_written at : %s",newjpegFilename);
         // finish compression
         jpeg_finish_compress(&cinfo);
 
@@ -99,6 +104,14 @@ static void jpegWrite(unsigned char* img, char* jpegFilename)
 
 }
 
+static void AvailableCommands()
+{
+        printf("---------- AvailableCommands -----------\n");
+        printf("Take picture : %d \n",1);
+        printf("Quit : %s \n","bye");
+        printf("Help : %s \n","h");
+
+        }
 
 
 int main(int argc , char ** argv)
@@ -113,7 +126,6 @@ char * msg = malloc(255*sizeof(char) );
     unsigned char *img = malloc(width*height*3*sizeof(char));
  
     struct sockaddr_in informations;  //structure donnant les informations sur le serveur
-
 
     // Test du nombre d'arguments 
     if (argc < 3)
@@ -143,7 +155,7 @@ char * msg = malloc(255*sizeof(char) );
         exit (-1);
     }
  
-    if (strcmp(msg, "aurevoir") != 0)
+    if (strcmp(msg, "bye") != 0)
     {
         memset(msg, 0, 255);
         recv(socketID, msg, 255, 0);
@@ -157,31 +169,48 @@ char * msg = malloc(255*sizeof(char) );
         fgets(msg, 255, stdin);// le client ecrit son message
         msg[strlen(msg) - 1] = '\0';
  
+        if (strcmp(msg,"1") == 0)
+        {
+
         if ((send(socketID, msg, strlen(msg), 0)) == -1)
             perror("send");
-        //recv(socketID, msg, 255, 0);
-       // printf ("Image reçue : %s\n", msg);
 
-        // recv(socketID, width, 255, 0);
-        // recv(socketID, height, 255, 0);
         recv(socketID, img, width*height*3*sizeof(char), 0);
-        //printf("Picture received!");
+
 	free(msg);
 	msg = malloc(255*sizeof(char) );
 	
 	strcpy(msg,"Picture_received\n");
 	printf(msg);
-	//printf("\n");
+
 	send(socketID,msg,255*sizeof(char),0);
         jpegWrite(img,"client");
         free(img);
         img = malloc(width*height*3*sizeof(char));
-        //printf("Je viens de recevoir l'image : %s \n", img);//  , img);
+        }
 
+        else if (strcmp(msg,"h") == 0)
+        {
+            AvailableCommands();
+        }
 
+        else if (strcmp(msg,"bye") == 0)
+        {
+            printf("Quit program\n");
+            if ((send(socketID, msg, strlen(msg), 0)) == -1)
+                perror("send");
+            break;
+        }
+
+        else {
+            printf("Error : command not recognized.\n");
+        }
+        free(msg);
+        msg = malloc(255*sizeof(char) );
     }
-    while (strcmp(msg, "aurevoir") != 0);    // tant que le client n'envoie pas "aurevoir" la conversation n'est pas fini
- 
+    while (1);
+
+
     shutdown(socketID, SHUT_RDWR);// fermeture du socket
  
     return 0;

@@ -1,13 +1,12 @@
 GCC = /root/buildroot-precompiled-2017.08/output/host/usr/bin/arm-linux-gcc
 COPTS = -Wall
-CLIENT = client
-BIN = client
+CLIENT = Hello
+BIN = Hello
 
 
 all:
 
-	# $(v4l2grab_OBJECTS) $(v4l2grab_LDADD) $(LIBS)
-	$(GCC)  $(COPTS) lib/comm.c $(CLIENT).c -o $(BIN) -ljpeg 
+	$(GCC)  $(COPTS) $(CLIENT).c -o $(BIN) 
 
 clean:
 	rm -f $(BIN)
