@@ -141,7 +141,9 @@ Avec le câble rouge correspondant au pin GPIO, et le câble noir au pin Ground)
 
 - trouver l'identifiant de l'adaptateur (commande dmseg). Ici, ttyUSB0
 
-- connexion via minicom  : sudo minicom -b 115200 -D /dev/ttyUSB0 
+- connexion via minicom  : 
+
+		sudo minicom -b 115200 -D /dev/ttyUSB0 
 
 - désactiver le contrôle de l'hardware machine dans la configuration minicom : pour cela, Ctrl+A --> O, puis F pour désactiver le contrôle
 
