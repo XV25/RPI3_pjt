@@ -99,6 +99,8 @@ Mettre la sd dans l'ordinateur
 
 Trouver l'identifiant de la carte sd via la commande lsblk -fs --> ici, mmcblk0
 
+Flasher la carte sd (ATTENTION : OPERATION TRÈS DELICATE : ÊTRE ABSOLUMENT SÛR QUE L'IDENTIFIANT DE LA CARTE SD SOIT CORRECT!)
+
 	sudo dd if=sdcard.img of=/dev/mmcblk0
 
 Copier start_x.elf et fixup_x.dat sur la 1e partition de la carte sd.
