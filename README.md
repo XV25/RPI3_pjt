@@ -167,7 +167,7 @@ Le changement de l'un à l'autre des logins se fait en ligne de commande, via la
 
 - Prendre l'ip de la raspberry : 
 
-	ipconfig
+		ipconfig
 
 Ici, cela correspond à est 172.20.10.199
 
