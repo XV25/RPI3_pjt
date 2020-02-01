@@ -48,47 +48,47 @@ Tentatives pour lancer un programme automatiquement au lancement de la raspberry
 
 ### Lancement du conteneur pour la cross-compilation
 
-1e lancement : 
+* 1e lancement : 
 
-docker pull pblottiere/embsys-rpi3-buildroot-video
+	docker pull pblottiere/embsys-rpi3-buildroot-video
 
-docker run -it pblottiere/embsys-rpi3-buildroot-video /bin/bash
+	docker run -it pblottiere/embsys-rpi3-buildroot-video /bin/bash
 
-docker# cd /root
+	docker# cd /root
 
-docker# ls
+	docker# ls
 
-buildroot-precompiled-2017.08.tar.gz
+	buildroot-precompiled-2017.08.tar.gz
 
-docker# tar zxvf buildroot-precompiled-2017.08.tar.gz
+	docker# tar zxvf buildroot-precompiled-2017.08.tar.gz
 
-Relancer : 
+* Relancer : 
 
-docker ps -a --> récupérer id container souhaité; ici, a333cea88350 
+	docker ps -a --> récupérer id container souhaité; ici, a333cea88350 
 
-docker container start a333cea88350
+	docker container start a333cea88350
 
-docker exec -it a333cea88350 /bin/bash
+	docker exec -it a333cea88350 /bin/bash
 
 ### Récupération des fichiers nécessaires
 
 On utilise find -name pour retrouver les fichiers souhaités: 
 
-find -name sdcard.img 
+	find -name sdcard.img 
 
---> /root/buildroot-precompiled-2017.08/output/images/sdcard.img
+	--> /root/buildroot-precompiled-2017.08/output/images/sdcard.img
 
-find -name start_x.elf 
+	find -name start_x.elf 
 
---> /root/buildroot-precompiled-2017.08/output/build/rpi-firmware-685b3ceb0a6d6d6da7b028ee409850e83fb7ede7/boot/start_x.elf
+	--> /root/buildroot-precompiled-2017.08/output/build/rpi-firmware-685b3ceb0a6d6d6da7b028ee409850e83fb7ede7/boot/start_x.elf
 
-find -name fixup_x.dat 
+	find -name fixup_x.dat 
 
---> /root/buildroot-precompiled-2017.08/output/build/rpi-firmware-685b3ceb0a6d6d6da7b028ee409850e83fb7ede7/boot/fixup_x.dat
+	--> /root/buildroot-precompiled-2017.08/output/build/rpi-firmware-685b3ceb0a6d6d6da7b028ee409850e83fb7ede7/boot/fixup_x.dat
 
 Une fois les fichiers trouvés, effectuer la commande de copie suivante pour chacun des fichiers :  
 
-docker cp a333cea88350:/root/buildroot-precompiled-2017.08/output/images/sdcard.img .
+	docker cp a333cea88350:/root/buildroot-precompiled-2017.08/output/images/sdcard.img .
 
 
 ### Flashage de la carte SD 
@@ -149,13 +149,13 @@ Deux logins sont alors possibles :
 
 Utilisateur classique :
 
-Identifiant : user
-Mdp : user1*
+	Identifiant : user
+	Mdp : user1*
 
 Super-utilisateur : 
 
-Identifiant : root
-Mdp : root1*
+	Identifiant : root
+	Mdp : root1*
 
 Le changement de l'un à l'autre des logins se fait en ligne de commande, via la commande su.
 
@@ -171,11 +171,11 @@ Pour utiliser le client sur un ordinateur :
 
 *Vérifier l'option GCC : si celle-ci contient gcc, le makefile est utilisable. Sinon, remplacer l'actuelle option GCC par la ligne suivante : 
 
-GCC=gcc
+		GCC=gcc
 
-	      * Utiliser make : make
+* Utiliser make : make
 	       
-	      * On obtient l'exécutable client
+* On obtient l'exécutable client
 
 ### Cross-compilation
 
