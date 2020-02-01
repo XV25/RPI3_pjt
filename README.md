@@ -48,7 +48,7 @@ Tentatives pour lancer un programme automatiquement au lancement de la raspberry
 
 ### Lancement du conteneur pour la cross-compilation
 
-* 1e lancement : 
+1e lancement : 
 
 	docker pull pblottiere/embsys-rpi3-buildroot-video
 
@@ -62,7 +62,7 @@ Tentatives pour lancer un programme automatiquement au lancement de la raspberry
 
 	docker# tar zxvf buildroot-precompiled-2017.08.tar.gz
 
-* Relancer : 
+Relancer : 
 
 	docker ps -a --> récupérer id container souhaité; ici, a333cea88350 
 
@@ -103,12 +103,12 @@ Copier start_x.elf et fixup_x.dat sur la 1e partition de la carte sd.
 
 Modifier config.txt :
 
-nano config.txt
+	nano config.txt
 
 Ajouter : 
 
-start_x=1
-gpu_mem=128
+	start_x=1
+	gpu_mem=128
 
 Démonter les deux partitions de la carte sd.
 
@@ -161,33 +161,33 @@ Le changement de l'un à l'autre des logins se fait en ligne de commande, via la
 
 - Prendre l'ip de la raspberry : 
 
-ipconfig
+	ipconfig
 
-Ici, est 172.20.10.199
+Ici, cela correspond à est 172.20.10.199
 
 ### Compilation
 
 Pour utiliser le client sur un ordinateur : 
 
-*Vérifier l'option GCC : si celle-ci contient gcc, le makefile est utilisable. Sinon, remplacer l'actuelle option GCC par la ligne suivante : 
+Vérifier l'option GCC : si celle-ci contient gcc, le makefile est utilisable. Sinon, remplacer l'actuelle option GCC par la ligne suivante : 
 
 		GCC=gcc
 
-* Utiliser make : make
+Utiliser make : make
 	       
-* On obtient l'exécutable client
+On obtient l'exécutable client
 
 ### Cross-compilation
 
 -Transférer les fichiers devant être exécutés sur la raspberry (et donc, compilés sur le docker)
 
-sudo docker v4l2grab-master/ a333cea88350:/home/
+		sudo docker v4l2grab-master/ a333cea88350:/home/
 
-sudo docker client/ a333cea88350:/home/
+		sudo docker client/ a333cea88350:/home/
 
 - Modifier la variable path, pour donner accès aux fichiers .sh dans ce path (dont ceux nécessaires pour la compilation)
 
-export PATH=$PATH:/root/buildroot-precompiled-2017.08/output/host/bin/
+		export PATH=$PATH:/root/buildroot-precompiled-2017.08/output/host/bin/
 
 -Compiler les programmes
 
@@ -211,15 +211,15 @@ GCC=/root/buildroot-precompiled-2017.08/output/host/usr/bin/arm-linux-gcc
 
 - Transférer sur l'ordinateur, dans un dossier différent du premier.
 
-sudo docker cp a333cea88350:/home/v4l2grab-master .
+		sudo docker cp a333cea88350:/home/v4l2grab-master .
 
-sudo docker cp a333cea88350:/home/client .
+		sudo docker cp a333cea88350:/home/client .
 
 - Transférer sur la raspberry 
 
-scp home/ehnla/Documents/UV_sysemb/rpi3_pjt/v4l2_doc/v4l2grab-master/v4l2grab user@172.20.10.199:/home/user/
+		scp home/ehnla/Documents/UV_sysemb/rpi3_pjt/v4l2_doc/v4l2grab-master/v4l2grab user@172.20.10.199:/home/user/
 
-scp home/ehnla/Documents/UV_sysemb/rpi3_pjt/v4l2_doc/client/client user@172.20.10.199:/home/user/
+		scp home/ehnla/Documents/UV_sysemb/rpi3_pjt/v4l2_doc/client/client user@172.20.10.199:/home/user/
 
 ### Lancement sur raspberry 
 
@@ -227,15 +227,15 @@ Utilisable uniquement en super-utilisateur (su si login user)
 
 - Lancer le module kernel (comme dans le sujet)
 
-modprobe bcm2835-v4l2
+		modprobe bcm2835-v4l2
 
 - Vérifier la présence de device : 
 
-ls /dev/video0
+		ls /dev/video0
 
 - Vérifier le bon fonctionnement du serveur : 
 
-./v4l2grab -h
+		./v4l2grab -h
 
 Normalement, l'ensemble des options du serveur doivent apparaître.
 
@@ -245,13 +245,15 @@ Normalement, l'ensemble des options du serveur doivent apparaître.
 
 A titre d'exemple, une exécution classique est de la forme suivante : 
 
-./v4l2grab -d /dev/video0 -o try1.jpg -P 2400
+		./v4l2grab -d /dev/video0 -o try1.jpg -P 2400
 
-Avec : -d pour l'accès à la caméra
+Avec : 
 
-	-o pour l'enregistrement d'images du côté serveur (en format .jpg). L'image sera remplacée à chaque nouvel ordre de prise d'image de l'utilisateur. Utile pour le débuggage. 
+-d pour l'accès à la caméra
 
-	-P pour le choix du port pour la communication serveur / client.
+-o pour l'enregistrement d'images du côté serveur (en format .jpg). L'image sera remplacée à chaque nouvel ordre de prise d'image de l'utilisateur. Utile pour le débuggage. 
+
+-P pour le choix du port pour la communication serveur / client.
 
 Le programme se stoppe via ctrl+C.
 
@@ -259,10 +261,8 @@ Le programme se stoppe via ctrl+C.
 
 Celui-ci se lance de la façon suivante : 
 
-./client <adresse_ip> <numéro_port>
+		./client <adresse_ip> <numéro_port>
 
 L'ensemble des options s'affichent avec la commande h. 
 
 Le programme se stoppe via la commade "bye" dans le terminal.
-
-
