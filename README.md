@@ -11,9 +11,11 @@ Contient toute la partie serveur, associée à la prise d'image sur la raspberry
 Le programme principal s'appelle v4l2grab.c. Dedans se trouve la gestion de la caméra et des ordres des clients. 
 Le programme gère uniquement la prise d'image, la connexion et la déconnexion des clients.
 La méthode pour compiler, obtenir l'exécutable associé à ce programme (v4l2grab) et l'utiliser est présenté après.
+
 Elle communique via deux LEDs : 
 
 - Une LED sur le pin GPIO17, lié à la communication de l'état du serveur (allumé quand activé, éteint sinon).
+
 - Une LED sur le pin GPIO18, lié à la communication de la prise de photo (allumé au début de la procédure, éteint à la fin).
 
 Elle utilise deux librairies : 
@@ -97,7 +99,7 @@ Mettre la sd dans l'ordinateur
 
 Trouver l'identifiant de la carte sd via la commande lsblk -fs --> ici, mmcblk0
 
-sudo dd if=sdcard.img of=/dev/mmcblk0
+	sudo dd if=sdcard.img of=/dev/mmcblk0
 
 Copier start_x.elf et fixup_x.dat sur la 1e partition de la carte sd.
 
@@ -191,7 +193,9 @@ On obtient l'exécutable client
 
 -Compiler les programmes
 
-Pour v4l2grab-master : * Utiliser autogen.sh : ./autogen.sh
+Pour v4l2grab-master : 
+
+			* Utiliser autogen.sh : ./autogen.sh
 	
 		       * Utiliser configure avec la variable host correspondante à l'image flashée sur la raspberry (vu via buildroot) : ./configure --host=arm-linux
 
